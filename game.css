@@ -1,65 +1,12 @@
 #mainContainer {
     display: flex;
-    flex-flow: row;
+    flex-direction: row;
     height: 70vh;
 }
 
-/* size should be according to window width */
-#storyContainer {
-    flex-grow: 1;
-    background-color: #E7D9AA;
-    border-radius: 15px;
-    border: 2px solid #929B7C;
-    margin: auto 0;
-    padding: 20px 20px;
-}
-
-#storyText {
-    font-size: 20px;
-    color: #334350;
-}
-
-.sidebar {
-    flex-grow: 0;
-    flex-shrink: 0;
-    flex-basis: 320px; /* 64px per square * 5 squares shown */
-}
-
-/* playerInfo stuff */
-#playerContainer {
-    background-color: #303730;
-    border-radius: 15px;
-    border: 2px solid #929B7C;
-    margin: auto 10px;
-}
-
-#playerInfoText {
-    font-size: 25px;
-    padding-left: 20px;
-    color: #CD8B62;
-    font-family: 'MedievalSharp', cursive;
-}
-
-#playerInfoButtons {
-    width: 320px;
-}
-
-.playerInfoButton {
-    height: 8vh;
-    width: 40%;
-    margin-left: 20px;
-    margin-bottom: 20px;
-}
-
-/* otherInfo stuff */
-#otherContainer {
-    margin: 15px 10px;
-}
-
 #plotContainer {
-    position: absolute;
-    width: 320px;
-    height: 320px;
+    flex-grow: 1;
+    position: relative;
     overflow: hidden;
 
     background-color: #303730;
@@ -72,32 +19,44 @@ img {
 }
 
 #playerIcon {
-    top: 145px;
-    left: 145px;
-    content:url("assets/playerIcon.jpeg");
+    top: 256px;
+    left: 256px;
+    content:url("assets/playerIcon.png");
 }
 
-#otherInfo {
-    position: relative;
-    top: 320px;
-
-    background-color: #6D4A46;
+.sidebar {
+    /*flex-grow: 0;*/
+    /*flex-shrink: 0;*/
+    width: 200px;
+    margin: 15px 10px;
     border-radius: 15px;
     border: 2px solid #929B7C;
-    padding: 0 20px;
-    margin: 10px 0;
 }
 
-#gameInfoText {
+.infoText {
     font-size: 25px;
+    padding-left: 20px;
     color: #CD8B62;
     font-family: 'MedievalSharp', cursive;
 }
 
-#otherInfoText {
-    font-size: 25px;
-    font-family: 'MedievalSharp', cursive;
+/* playerInfo stuff */
+#playerContainer {
+    background-color: #303730;
 }
+
+.playerInfoButton {
+    height: 8vh;
+    width: 160px;
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+/* otherInfo stuff */
+#otherContainer {
+    background-color: #6D4A46;
+}
+
 
 #playerActionButtons {
     height: 19vh;
@@ -121,7 +80,7 @@ button {
     border: 2px solid #929B7C;
     border-radius: 12px;
     cursor: pointer;
-    vertical-align:top; /* stops button from moving with added text */
+    vertical-align: top; /* stops button from moving with added text */
     font-family: 'MedievalSharp', cursive;
 }
 

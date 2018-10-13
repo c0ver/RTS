@@ -12,6 +12,8 @@ const PLOT_FILE = "assets/plot/images/{0}.png";
 
 const EVENT_INFO = "Current Event: ({0})";
 
+const TILE_SIZE = 64;
+
 export default class Game {
 
     constructor(event) {
@@ -37,18 +39,18 @@ export default class Game {
 
 
         $("<div>", {id: "playerContainer", class: "sidebar"}).appendTo("#mainContainer");
-        $("<p>", {id: "playerInfoText"}).appendTo("#playerContainer");
+        $("<p>", {id: "playerInfoText", class: "infoText"}).appendTo("#playerContainer");
         $("<div>", {id: "playerInfoButtons"}).appendTo("#playerContainer");
         $("<button>", {
             class: "playerInfoButton",
             id: "Inventory",
             text: "Inventory"
-        }).appendTo("#playerInfoButtons");
+        }).appendTo("#playerContainer");
         $("<button>", {
             class: "playerInfoButton",
             id: "Gear",
             text: "Gear"
-        }).appendTo("#playerInfoButtons");
+        }).appendTo("#playerContainer");
         $(".playerInfoButton").each(function () {
             let $this = $(this);
             $this.click(function () {
@@ -56,22 +58,19 @@ export default class Game {
             });
         });
 
-        $("<div>", {id: "storyContainer"}).appendTo("#mainContainer");
-        $("<p>", {id: "storyText"}).appendTo("#storyContainer");
+        $("<div>", {id: "plotContainer"}).appendTo("#mainContainer");
+        $("<img>", {id: "plot"}).appendTo("#plotContainer");
+        $("<img>", {id: "playerIcon"}).appendTo("#plotContainer");
 
 
         $("<div>", {id: "otherContainer", class: "sidebar"}).appendTo("#mainContainer");
-        $("<div>", {id: "plotContainer"}).appendTo("#otherContainer");
-        $("<img>", {id: "plot"}).appendTo("#plotContainer");
-        $("<img>", {id: "playerIcon"}).appendTo("#plotContainer");
-        $("<div>", {id: "otherInfo"}).appendTo("#otherContainer");
-        $("<p>", {id: "gameInfoText"}).appendTo("#otherInfo");
-        $("<p>", {id: "otherInfoText"}).appendTo("#otherInfo");
+        $("<p>", {id: "gameInfoText", class: "infoText"}).appendTo("#otherContainer");
+        $("<p>", {id: "otherInfoText", class: "infoText"}).appendTo("#otherContainer");
 
 
-        $("<table>", {id: "playerActionButtons"}).appendTo("body");
+        $("<div>", {id: "playerActionButtons"}).appendTo("body");
         $("#playerActionButtons").css({
-            width: ($("#storyContainer").width() + "px")
+            width: ($("#plotContainer").width() + "px")
         });
         // create the buttons for the game
         for (let i = 0; i < 9; i++) {
@@ -134,18 +133,45 @@ export default class Game {
         let $gameInfoText = $("#gameInfoText");
         $gameInfoText.text(this.gameTime.formatted() + me.parentPlace.name + '\n');
 
-        // update storyText
-        $("#storyText").text(event.storyText);
+        // // update storyText
+        // $("#storyText").text(event.storyText);
+
+
+        // update plotContainer
+        let newImage = $("#plot");
+        newImage.attr('src', PLOT_FILE.fmt(me.parentPlace.name));
+        newImage.on('load', function() {
+            let size = newImage.height();
+
+            if (size > 576) {
+                newImage.css({
+                    top: 192,
+                    left: 192
+                });
+            } else {
+                newImage.css({
+                    top: (576 - size) / 2,
+                    left: (576 - size) / 2
+                });
+            }
+
+            // move plot according to player position
+            // newImage.css({
+            //     top: Math.floor((size / (TILE_SIZE * 2) - me.yPos)) * TILE_SIZE
+            //         + newImage.position().top,
+            //     left: Math.floor(size / (TILE_SIZE * 2) - me.xPos) * TILE_SIZE
+            //         + newImage.position().left
+            // });
+
+            newImage.css({
+                top: (64 - me.yPos * 64) + newImage.position().top,
+                left: (64 - me.xPos * 64) + newImage.position().left
+            });
+
+        });
 
 
         // update otherInfo
-        let newImage = $("#plot");
-        newImage.attr("src", PLOT_FILE.fmt(me.parentPlace.name));
-        newImage.css({
-            top: (128 - me.yPos * 64),
-            left: (128 - me.xPos * 64)
-        });
-
         let $otherInfoText = $("#otherInfoText");
         $otherInfoText.text("");
         if (event.other != null) {

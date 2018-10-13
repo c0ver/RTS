@@ -20,3 +20,19 @@ Name of parentPlace above map
 Make keyboard keys correspond to buttons
 
 Don't need to show stats until player detail screen
+
+Ways to make Money:
+Trade
+Bounty Hunting
+Hunting/Fishing
+Exploring
+Mining
+
+Wood Cutting?
+Crafting?
+
+
+Changes:
+Updated player icon on map
+Moved the map to the center of the screen.
+Move away from a focus on writing and more to gameplay
