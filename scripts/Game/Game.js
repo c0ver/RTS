@@ -6,6 +6,7 @@ import Gear from "../EventTypes/Gear.js";
 import Trade from "../EventTypes/Trade.js";
 import Battle from "./Battle.js";
 import Place from '../Thing/Plottables/Place.js';
+import {changePlotDisplay} from "../Thing/Plottables/Mobile.js";
 import ItemEvent from "../EventTypes/ItemEvent.js";
 
 const PLOT_FILE = "assets/plot/images/{0}.png";
@@ -21,7 +22,11 @@ export default class Game {
         this.currentEvent = null;
 
         this.initialize();
-        this.updateDisplay(event);
+        changePlotDisplay();
+    }
+
+    gameLoop() {
+        // this.drawDisplay();
     }
 
     /**
@@ -34,48 +39,47 @@ export default class Game {
 
         $("body").empty();
 
-        // contains the upper three divs: playerInfo, storyText, otherInfo
-        $("<div>", {id: "mainContainer"}).appendTo("body");
-
-
-        $("<div>", {id: "playerContainer", class: "sidebar"}).appendTo("#mainContainer");
-        $("<p>", {id: "playerInfoText", class: "infoText"}).appendTo("#playerContainer");
-        $("<div>", {id: "playerInfoButtons"}).appendTo("#playerContainer");
-        $("<button>", {
-            class: "playerInfoButton",
-            id: "Inventory",
-            text: "Inventory"
-        }).appendTo("#playerContainer");
-        $("<button>", {
-            class: "playerInfoButton",
-            id: "Gear",
-            text: "Gear"
-        }).appendTo("#playerContainer");
-        $(".playerInfoButton").each(function () {
-            let $this = $(this);
-            $this.click(function () {
-                self.buttonPress($this.text());
-            });
-        });
-
-        $("<div>", {id: "plotContainer"}).appendTo("#mainContainer");
-        $("<img>", {id: "plot"}).appendTo("#plotContainer");
-        $("<img>", {id: "playerIcon"}).appendTo("#plotContainer");
-
-
-        $("<div>", {id: "otherContainer", class: "sidebar"}).appendTo("#mainContainer");
-        $("<p>", {id: "gameInfoText", class: "infoText"}).appendTo("#otherContainer");
-        $("<p>", {id: "otherInfoText", class: "infoText"}).appendTo("#otherContainer");
-
-
-        $("<div>", {id: "playerActionButtons"}).appendTo("body");
-        $("#playerActionButtons").css({
-            width: ($("#plotContainer").width() + "px")
-        });
-        // create the buttons for the game
-        for (let i = 0; i < 9; i++) {
-            $("<button>", {class: "playerActionButton"}).appendTo("#playerActionButtons");
-        }
+        // // contains the upper three divs: playerInfo, storyText, otherInfo
+        // $("<div>", {id: "mainContainer"}).appendTo("body");
+        //
+        //
+        // $("<div>", {id: "playerContainer", class: "sidebar"}).appendTo("#mainContainer");
+        // $("<p>", {id: "playerInfoText", class: "infoText"}).appendTo("#playerContainer");
+        // $("<div>", {id: "playerInfoButtons"}).appendTo("#playerContainer");
+        // $("<button>", {
+        //     class: "playerInfoButton",
+        //     id: "Inventory",
+        //     text: "Inventory"
+        // }).appendTo("#playerContainer");
+        // $("<button>", {
+        //     class: "playerInfoButton",
+        //     id: "Gear",
+        //     text: "Gear"
+        // }).appendTo("#playerContainer");
+        // $(".playerInfoButton").each(function () {
+        //     let $this = $(this);
+        //     $this.click(function () {
+        //         self.buttonPress($this.text());
+        //     });
+        // });
+        //
+        $("<img>", {id: "plot"}).appendTo("body");
+        $("<img>", {id: "playerIcon"}).appendTo("body");
+        //
+        //
+        // $("<div>", {id: "otherContainer", class: "sidebar"}).appendTo("#mainContainer");
+        // $("<p>", {id: "gameInfoText", class: "infoText"}).appendTo("#otherContainer");
+        // $("<p>", {id: "otherInfoText", class: "infoText"}).appendTo("#otherContainer");
+        //
+        //
+        // $("<div>", {id: "playerActionButtons"}).appendTo("body");
+        // $("#playerActionButtons").css({
+        //     width: ($("#plotContainer").width() + "px")
+        // });
+        // // create the buttons for the game
+        // for (let i = 0; i < 9; i++) {
+        //     $("<button>", {class: "playerActionButton"}).appendTo("#playerActionButtons");
+        // }
 
 
         Place.birthMonsters();
@@ -114,44 +118,40 @@ export default class Game {
             }
         }
 
-        this.updateDisplay(newEvent);
+        this.drawDisplay(newEvent);
 
         console.groupEnd();
     }
 
-    /**
-     * @param event {Event} The new event to be displayed
-     */
-    updateDisplay(event) {
-        console.log("Updating Event to: ({0})".fmt(event.title));
-        this.currentEvent = event;
-        let self = this;
-
+    drawDisplay() {
         // update playerInfo
-        $("#playerInfoText").text(me.info());
-
-        let $gameInfoText = $("#gameInfoText");
-        $gameInfoText.text(this.gameTime.formatted() + me.parentPlace.name + '\n');
+        // $("#playerInfoText").text(me.info());
+        //
+        // let $gameInfoText = $("#gameInfoText");
+        // $gameInfoText.text(this.gameTime.formatted() + me.parentPlace.name + '\n');
 
         // // update storyText
         // $("#storyText").text(event.storyText);
 
 
         // update plotContainer
-        let newImage = $("#plot");
-        newImage.attr('src', PLOT_FILE.fmt(me.parentPlace.name));
-        newImage.on('load', function() {
-            let size = newImage.height();
+        let $newImage = $("#plot");
+        let $playerIcon = $("#playerIcon");
+        let $body = $("body");
+        $newImage.attr('src', PLOT_FILE.fmt(me.parentPlace.name));
+        $newImage.on('load', function() {
+            let imageSize = $newImage.height();
+            let windowHeight = $body.height();
+            let windowWidth = $body.width();
 
-            if (size > 576) {
-                newImage.css({
-                    top: 192,
-                    left: 192
+            if (imageSize < windowWidth) {
+                $newImage.css({
+                    left: (windowWidth - imageSize) / 2
                 });
-            } else {
-                newImage.css({
-                    top: (576 - size) / 2,
-                    left: (576 - size) / 2
+            }
+            if (imageSize < windowHeight) {
+                $newImage.css({
+                    top: (windowHeight - imageSize) / 2,
                 });
             }
 
@@ -163,55 +163,30 @@ export default class Game {
             //         + newImage.position().left
             // });
 
-            newImage.css({
-                top: (64 - me.yPos * 64) + newImage.position().top,
-                left: (64 - me.xPos * 64) + newImage.position().left
-            });
+            if(me.hasMoved === true) {
+                console.log("Moving the map to fit the moved player");
 
+                $newImage.css({
+                    top: me.yPos * 64 + $newImage.position().top,
+                    left: me.xPos * 64 + $newImage.position().left
+                });
+
+                me.hasMoved = false;
+            }
+
+            $playerIcon.css({
+                left: (windowWidth - $playerIcon.width()) / 2,
+                top: (windowHeight - $playerIcon.height()) / 2
+            })
         });
 
 
         // update otherInfo
-        let $otherInfoText = $("#otherInfoText");
-        $otherInfoText.text("");
-        if (event.other != null) {
-            $otherInfoText.append(event.other.info());
-        }
-
-
-        // update buttons
-        let $actionButtonSet = $(".playerActionButton");
-        $actionButtonSet.prop("disabled", true);
-        $actionButtonSet.text("");
-
-        $actionButtonSet.each(function (index) {
-            if (index === event.buttonSet.length) {
-                return false;
-            }
-
-            let $this = $(this);
-
-            $this.text(event.buttonSet[index]);
-            $this.off("click"); // gets rid of all listeners
-            $this.click(function () {
-                self.buttonPress(event.buttonSet[index]);
-            });
-
-            if ($this.text() && event.canDo(event.buttonSet[index], me)) {
-                $this.prop("disabled", false);
-            }
-        });
-
-        let $Inventory = $("#Inventory");
-        let $Gear = $("#Gear");
-        $Inventory.prop("disabled", false);
-        $Gear.prop("disabled", false);
-        if(event instanceof Inventory && event.self === me &&
-            !(event.nextEvent instanceof Trade) || event instanceof Gear ||
-            event instanceof ItemEvent) {
-            $Inventory.prop("disabled", true);
-            $Gear.prop("disabled", true);
-        }
+        // let $otherInfoText = $("#otherInfoText");
+        // $otherInfoText.text("");
+        // if (event.other != null) {
+        //     $otherInfoText.append(event.other.info());
+        // }
     }
 
     progressTime(amount) {

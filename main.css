@@ -1,5 +1,12 @@
+html {
+    height: 100%;
+}
+
 body {
     overflow: hidden; /* stop page from scrolling */
+    height: 100%;
+    margin: 0;
+    padding: 0;
     background: #28313A;
     /*background:url("assets/parchment.jpg");*/
     /*background-size: 100% auto;*/
