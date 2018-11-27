@@ -6,27 +6,35 @@ import Gear from "../EventTypes/Gear.js";
 import Trade from "../EventTypes/Trade.js";
 import Battle from "./Battle.js";
 import Place from '../Thing/Plottables/Place.js';
-import {changePlotDisplay} from "../Thing/Plottables/Mobile.js";
 import ItemEvent from "../EventTypes/ItemEvent.js";
+import ActionCombat from "./ActionCombat.js";
 
-const PLOT_FILE = "assets/plot/images/{0}.png";
+let Sprite = PIXI.Sprite,
+    resources = PIXI.loader.resources;
 
 const EVENT_INFO = "Current Event: ({0})";
 
+const PLOT_FILE = "assets/plot/images/{0}.png";
+const PLAYER_ICON_FILE = "assets/playerIcon.png";
 const TILE_SIZE = 64;
 
 export default class Game {
 
-    constructor(event) {
+    constructor() {
         this.gameTime = new Time();
         this.currentEvent = null;
+        this.currentPlotName = null;
+        this.plot = null;
+
+        // create the PixiJS application that matches the window size
+        let $body = $("body");
+        $body.empty();
+        let width = $body.width();
+        let height = $body.height();
+        this.plotContainer = new PIXI.Application(width, height);
 
         this.initialize();
-        changePlotDisplay();
-    }
-
-    gameLoop() {
-        // this.drawDisplay();
+        // let a = new ActionCombat();
     }
 
     /**
@@ -34,56 +42,81 @@ export default class Game {
      */
     initialize() {
         console.group("Initializing this Game instance");
-
         let self = this;
 
-        $("body").empty();
+        // initialize the plot first
+        $("<div>", {id: "overallContainer"}).appendTo("body");
+        $("#overallContainer").append(this.plotContainer.view);
 
-        // // contains the upper three divs: playerInfo, storyText, otherInfo
-        // $("<div>", {id: "mainContainer"}).appendTo("body");
-        //
-        //
-        // $("<div>", {id: "playerContainer", class: "sidebar"}).appendTo("#mainContainer");
-        // $("<p>", {id: "playerInfoText", class: "infoText"}).appendTo("#playerContainer");
-        // $("<div>", {id: "playerInfoButtons"}).appendTo("#playerContainer");
-        // $("<button>", {
-        //     class: "playerInfoButton",
-        //     id: "Inventory",
-        //     text: "Inventory"
-        // }).appendTo("#playerContainer");
-        // $("<button>", {
-        //     class: "playerInfoButton",
-        //     id: "Gear",
-        //     text: "Gear"
-        // }).appendTo("#playerContainer");
-        // $(".playerInfoButton").each(function () {
-        //     let $this = $(this);
-        //     $this.click(function () {
-        //         self.buttonPress($this.text());
-        //     });
-        // });
-        //
-        $("<img>", {id: "plot"}).appendTo("body");
-        $("<img>", {id: "playerIcon"}).appendTo("body");
-        //
-        //
-        // $("<div>", {id: "otherContainer", class: "sidebar"}).appendTo("#mainContainer");
-        // $("<p>", {id: "gameInfoText", class: "infoText"}).appendTo("#otherContainer");
-        // $("<p>", {id: "otherInfoText", class: "infoText"}).appendTo("#otherContainer");
-        //
-        //
-        // $("<div>", {id: "playerActionButtons"}).appendTo("body");
-        // $("#playerActionButtons").css({
-        //     width: ($("#plotContainer").width() + "px")
-        // });
-        // // create the buttons for the game
-        // for (let i = 0; i < 9; i++) {
-        //     $("<button>", {class: "playerActionButton"}).appendTo("#playerActionButtons");
-        // }
+        this.plot = new Sprite(
+            resources[PLOT_FILE.fmt(me.parentPlace.name)].texture);
+        this.plot.x = this.plotContainer.renderer.width / 2 - TILE_SIZE / 2 -
+            TILE_SIZE * me.xPos;
+        this.plot.y = this.plotContainer.renderer.height / 2 - TILE_SIZE / 2 -
+            TILE_SIZE * me.yPos;
+        // the plot will always be the first child
+        this.plotContainer.stage.addChild(this.plot);
+        this.currentPlotName = me.parentPlace.name;
 
+        let playerIcon = new Sprite(resources[PLAYER_ICON_FILE].texture);
+        playerIcon.x = this.plotContainer.renderer.width / 2 - TILE_SIZE / 2;
+        playerIcon.y = this.plotContainer.renderer.height / 2 - TILE_SIZE / 2;
+        this.plotContainer.stage.addChild(playerIcon);
+
+        $("<div>", {id: "playerContainer", class: "sidebar"}).appendTo("body");
+        $("<p>", {id: "playerInfoText", class: "infoText"})
+            .appendTo("#playerContainer");
+        $("<div>", {id: "playerInfoButtons"}).appendTo("#playerContainer");
+        $("<button>", {
+            class: "playerInfoButton",
+            id: "Stats",
+            text: "Stats"
+        }).appendTo("#playerContainer");
+        $(".playerInfoButton").each(function () {
+            let $this = $(this);
+            $this.click(function () {
+                self.buttonPress($this.text());
+            });
+        });
+
+        $("<div>", {id: "otherContainer", class: "sidebar"}).appendTo("body");
+        $("<p>", {id: "gameInfoText", class: "infoText"})
+            .appendTo("#otherContainer");
+        $("<p>", {id: "otherInfoText", class: "infoText"})
+            .appendTo("#otherContainer");
+
+        $("<div>", {id: "mainContainer"}).appendTo("body");
+        $("<div>", {id: "battleContainer"}).css("visibility", "hidden")
+            .appendTo("#mainContainer");
+        $("<div>", {id: "storyContainer"}).appendTo("#mainContainer");
+        $("<p>", {id: "storyText"}).appendTo("#storyContainer");
 
         Place.birthMonsters();
         console.groupEnd();
+
+        // giving keyboard controls
+        $(document).keydown(function(e) {
+            switch(e.which) {
+                case 87: // w
+                    me.move(0, -1);
+                    break;
+                case 83: // s
+                    me.move(0, 1);
+                    break;
+                case 65: // a
+                    me.move(-1, 0);
+                    break;
+                case 68: // d
+                    me.move(1, 0);
+                    break;
+            }
+        });
+
+        this.plotContainer.ticker.add(delta => this.gameLoop(delta));
+    }
+
+    gameLoop(delta) {
+        this.updateDisplay();
     }
 
     buttonPress(command) {
@@ -125,61 +158,24 @@ export default class Game {
 
     drawDisplay() {
         // update playerInfo
-        // $("#playerInfoText").text(me.info());
-        //
-        // let $gameInfoText = $("#gameInfoText");
-        // $gameInfoText.text(this.gameTime.formatted() + me.parentPlace.name + '\n');
+        $("#playerInfoText").text(me.simpleInfo());
 
-        // // update storyText
-        // $("#storyText").text(event.storyText);
+        let $gameInfoText = $("#gameInfoText");
+        $gameInfoText.text(this.gameTime.formatted() + me.parentPlace.name + '\n');
+
+        // update storyText
+        $("#storyText").text("HI");
 
 
         // update plotContainer
-        let $newImage = $("#plot");
-        let $playerIcon = $("#playerIcon");
-        let $body = $("body");
-        $newImage.attr('src', PLOT_FILE.fmt(me.parentPlace.name));
-        $newImage.on('load', function() {
-            let imageSize = $newImage.height();
-            let windowHeight = $body.height();
-            let windowWidth = $body.width();
-
-            if (imageSize < windowWidth) {
-                $newImage.css({
-                    left: (windowWidth - imageSize) / 2
-                });
+        if (me.hasMoved === true) {
+            me.hasMoved = false;
+            if (me.parentPlace.name !== this.currentPlotName) {
+                this.changePlotDisplay();
+            } else {
+                this.movePlotDisplay();
             }
-            if (imageSize < windowHeight) {
-                $newImage.css({
-                    top: (windowHeight - imageSize) / 2,
-                });
-            }
-
-            // move plot according to player position
-            // newImage.css({
-            //     top: Math.floor((size / (TILE_SIZE * 2) - me.yPos)) * TILE_SIZE
-            //         + newImage.position().top,
-            //     left: Math.floor(size / (TILE_SIZE * 2) - me.xPos) * TILE_SIZE
-            //         + newImage.position().left
-            // });
-
-            if(me.hasMoved === true) {
-                console.log("Moving the map to fit the moved player");
-
-                $newImage.css({
-                    top: me.yPos * 64 + $newImage.position().top,
-                    left: me.xPos * 64 + $newImage.position().left
-                });
-
-                me.hasMoved = false;
-            }
-
-            $playerIcon.css({
-                left: (windowWidth - $playerIcon.width()) / 2,
-                top: (windowHeight - $playerIcon.height()) / 2
-            })
-        });
-
+        }
 
         // update otherInfo
         // let $otherInfoText = $("#otherInfoText");
@@ -189,8 +185,54 @@ export default class Game {
         // }
     }
 
+    movePlotDisplay() {
+        console.log("Moving plot");
+
+        let $newImage = $("#plot");
+        let $body = $("body");
+        let $playerIcon = $("#playerIcon");
+
+        let windowHeight = $body.height();
+        let windowWidth = $body.width();
+
+        /* adjust the plot to the player's position with starting point at (0, 0) */
+        $newImage.css({
+            left: (windowWidth - TILE_SIZE) / 2 + me.xPos * -1 * TILE_SIZE,
+            top: (windowHeight - TILE_SIZE) / 2 + me.yPos * -1 * TILE_SIZE
+        });
+
+        console.log(windowWidth);
+        console.log(windowHeight);
+
+        // TODO: should only do this when the window size changes
+        // problem with loading sometimes
+        $playerIcon.css({
+            left: (windowWidth - $playerIcon.width()) / 2,
+            top: (windowHeight - $playerIcon.height()) / 2
+        })
+    }
+
+    changePlotDisplay() {
+        console.log("Changing plot to {0}".fmt(me.parentPlace.name));
+
+        // the plot will always be the first child
+        this.plotContainer.stage.getChildAt(0).texture =
+            resources[PLOT_FILE.fmt(me.parentPlace.name)].texture;
+    }
+
+    updateDisplay() {
+        if(me.parentPlace.name !== this.currentPlotName) {
+            this.changePlotDisplay();
+        }
+
+        this.plot.x = this.plotContainer.renderer.width / 2 - TILE_SIZE / 2 -
+            TILE_SIZE * me.xPos;
+        this.plot.y = this.plotContainer.renderer.height / 2 - TILE_SIZE / 2 -
+            TILE_SIZE * me.yPos;
+    }
+
     progressTime(amount) {
-        if(amount === 0) {
+        if (amount === 0) {
             return;
         }
         this.gameTime.addTime(amount);
@@ -218,7 +260,7 @@ export default class Game {
         console.groupCollapsed("Monsters are moving");
         for (let monsterID in activeMonsters) {
             let monster = activeMonsters[monsterID];
-            if(monster.fatigue() < 0.3 || monster.vitality() < 0.5) {
+            if (monster.fatigue() < 0.3 || monster.vitality() < 0.5) {
                 monster.rest();
                 continue;
             }
@@ -269,6 +311,8 @@ export default class Game {
 
         console.groupEnd();
     }
+
+
 }
 
 const TIME_FORMAT = "Day {0}, {1}:{2}\n";
@@ -287,14 +331,14 @@ class Time {
     addTime(time) {
         this.minutes += time;
         this.newHour = false;
-        if(this.minutes >= 60) {
+        if (this.minutes >= 60) {
             this.hours++;
             this.minutes -= 60;
             this.newHour = true;
         }
 
         this.newDay = false;
-        if(this.hours >= 24) {
+        if (this.hours >= 24) {
             this.days++;
             this.hours -= 24;
             this.newDay = true;
@@ -303,12 +347,12 @@ class Time {
 
     formatted() {
         let minutes = this.minutes.toString();
-        if(this.minutes < 10) {
+        if (this.minutes < 10) {
             minutes = "0" + minutes;
         }
 
         let hours = this.hours.toString();
-        if(this.hours < 10) {
+        if (this.hours < 10) {
             hours = "0" + hours;
         }
 

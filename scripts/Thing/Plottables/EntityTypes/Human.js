@@ -32,10 +32,10 @@ export default class Human extends Entity {
      */
     constructor(name, desc, parentPlace, xPos, yPos, level, deathXP,
                 baseStats, hostility, inventory, wealthLevel, birthPriority) {
-        if(level === undefined) level = START_LEVEL;
-        if(deathXP === undefined) deathXP = DEATH_XP;
-        if(baseStats === undefined) baseStats = BASE_STATS.slice();
-        if(hostility === undefined) hostility = HOSTILITY;
+        if (level === undefined) level = START_LEVEL;
+        if (deathXP === undefined) deathXP = DEATH_XP;
+        if (baseStats === undefined) baseStats = BASE_STATS.slice();
+        if (hostility === undefined) hostility = HOSTILITY;
 
         super(name, desc, parentPlace, xPos, yPos, level, deathXP, baseStats,
             hostility, inventory, WEALTH_LEVELS[wealthLevel], birthPriority);

@@ -40,7 +40,7 @@ export default class Trade extends Event {
         let seller = me;
         let buyer = this.other;
         let tradeType = "sold";
-        if(this.toBuy === true) {
+        if (this.toBuy === true) {
             this.toBuy = false;
             buyer = me;
             seller = this.other;
@@ -50,7 +50,7 @@ export default class Trade extends Event {
         let itemValue = item.getValue();
 
         let mainText = TRADE_FAIL_TEXT.fmt(itemName, tradeType, buyer.name);
-        if(buyer.loseMoney(itemValue)) {
+        if (buyer.loseMoney(itemValue)) {
             seller.gainMoney(itemValue);
             seller.loseItem(item.id);
             buyer.gainItem(item.id);

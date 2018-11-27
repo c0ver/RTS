@@ -162,7 +162,7 @@ export var clone = (function() {
                     continue;
                 }
 
-                if(i === "parentPlace" || i === "quests") {
+                if (i === "parentPlace" || i === "quests") {
                     child[i] = parent[i];
                     continue;
                 }

@@ -27,7 +27,7 @@ export default class Gear extends Event {
 
         for(let gearSlot of GEAR_SET) {
             // command is a slot subType to equip for
-            if(command === gearSlot) {
+            if (command === gearSlot) {
                 this.gearSlot = gearSlot;
                 return new Inventory(me, this, command);
             }

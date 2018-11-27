@@ -28,7 +28,7 @@ export default class Tile extends Thing {
         this.name += "\\" + tile.name;
         this.desc += "\n\n" + tile.desc;
 
-        if(this.dangerLevel < tile.dangerLevel) {
+        if (this.dangerLevel < tile.dangerLevel) {
             this.dangerLevel = tile.dangerLevel;
         }
 
@@ -40,7 +40,7 @@ export default class Tile extends Thing {
     }
 
     removePlottable(plottable) {
-        if(!this.onTileList.hasOwnProperty(plottable.id)) {
+        if (!this.onTileList.hasOwnProperty(plottable.id)) {
             console.error(PLOTTABLE_REMOVE_ERROR.fmt(plottable.tag));
             console.error("({0}, {1})".fmt(plottable.xPos, plottable.yPos));
         }
@@ -59,7 +59,7 @@ export default class Tile extends Thing {
         let eventObject = {};
         let desc = "";
         for(let key of keys) {
-            if(key === me.id) {
+            if (key === me.id) {
                 continue;
             }
 
@@ -73,7 +73,7 @@ export default class Tile extends Thing {
 
     hasPlottables(selfID) {
         for(let plottableID in this.onTileList) {
-            if(selfID !== plottableID) {
+            if (selfID !== plottableID) {
                 return true;
             }
         }
@@ -84,7 +84,7 @@ export default class Tile extends Thing {
         let enemies = [];
         for(let plottableID in this.onTileList) {
             let plottable = this.onTileList[plottableID];
-            if(selfID !== plottableID && plottable instanceof Entity &&
+            if (selfID !== plottableID && plottable instanceof Entity &&
                 plottable.hostility !== 0) {
                 enemies.push(plottable);
             }
@@ -94,7 +94,7 @@ export default class Tile extends Thing {
 
     getPlace() {
         for(let plottableID in this.onTileList) {
-            if(placeList[plottableID] != null) {
+            if (placeList[plottableID] != null) {
                 return placeList[plottableID];
             }
         }
@@ -103,7 +103,7 @@ export default class Tile extends Thing {
 
     getEvent() {
         let enemies = this.getEnemies(me.id);
-        if(enemies.length !== 0) {
+        if (enemies.length !== 0) {
             let storyText = "";
             for(let enemy of enemies) {
                 storyText += enemy.desc + '\n';

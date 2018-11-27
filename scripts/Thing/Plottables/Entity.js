@@ -96,7 +96,7 @@ export default class Entity extends Mobile {
     equip(itemName) {
         let newGear = getObjByName(itemName, itemList);
 
-        if(!this.inventory.hasOwnProperty(newGear.id)) {
+        if (!this.inventory.hasOwnProperty(newGear.id)) {
             console.error("You don't have a " + newGear.name);
             return;
         }
@@ -108,7 +108,7 @@ export default class Entity extends Mobile {
             subType));
 
         // move the current gear back into inventory
-        if(currentGearID !== null) {
+        if (currentGearID !== null) {
             this.gainItem(currentGearID);
 
             // remove the stats for this gear
@@ -315,7 +315,7 @@ export default class Entity extends Mobile {
     }
 
     die() {
-        if(this.isAlive === false) {
+        if (this.isAlive === false) {
             console.error(this.name + " is already dead");
         }
 
@@ -367,11 +367,16 @@ export default class Entity extends Mobile {
     }
 
     info() {
-        if(this === me) {
+        if (this === me) {
             return super.info() + this.statInfo() + this.moneyInfo();
-        } else if(this.hostility === 0) {
+        } else if (this.hostility === 0) {
             return super.info();
         }
         return super.info() + this.statInfo();
+    }
+
+    simpleInfo() {
+        return super.info() + "HP: " + this.hp() + '\nEnergy: ' + this.energy()
+            + '\n';
     }
 }

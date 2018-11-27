@@ -30,14 +30,14 @@ export default class Quest extends Thing {
     updateChapter(chapterName) {
 
         // remove the quest from the trigger to move on to the next chapter
-        if(this.nextChapter.name === "N/A") {
+        if (this.nextChapter.name === "N/A") {
             return;
         }
         let oldTrigger = getObjByName(this.nextChapter.triggerName, totalList);
         delete oldTrigger.quests[this.name];
 
         // this quest is finished
-        if(chapterName === null) {
+        if (chapterName === null) {
             console.log(this.name + " is finished");
             return;
         }
@@ -45,7 +45,7 @@ export default class Quest extends Thing {
         let newTrigger = getObjByName(this.story[chapterName].triggerName, totalList);
 
         // totalList does not include this trigger
-        if(newTrigger == null) {
+        if (newTrigger == null) {
             console.error(this.story[chapterName].triggerName +
                 " is not a valid plottable");
             return;

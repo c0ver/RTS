@@ -43,11 +43,11 @@ export default class Place extends Plottable {
             }
 
             // check for null because of plot layers
-            if(this.plot === undefined) {
+            if (this.plot === undefined) {
                 this.plot = new Array(plotRows.length);
             }
             for (let y = 0; y < plotRows.length; y++) {
-                if(this.plot[y] == null) {
+                if (this.plot[y] == null) {
                     this.plot[y] = new Array(plotRows.length);
                 }
 
@@ -60,7 +60,7 @@ export default class Place extends Plottable {
                         continue;
                     }
 
-                    if(this.plot[y][x] == null) {
+                    if (this.plot[y][x] == null) {
                         let tileToCopy = getObjByName(row[x], tileList);
                         this.plot[y][x] = new Tile(tileToCopy.name,
                                         tileToCopy.desc, tileToCopy.dangerLevel);
@@ -86,7 +86,7 @@ export default class Place extends Plottable {
     }
 
     getPlace(x, y) {
-        if(this.withinPlot(x, y)) {
+        if (this.withinPlot(x, y)) {
             return this.plot[y][x].getPlace();
         }
         return null;
@@ -97,7 +97,7 @@ export default class Place extends Plottable {
         for(let i = 0; i < this.size; i++) {
             for(let j = 0; j < this.size; j++) {
                 let plottable = this.getTile(i, j).onTileList;
-                if(Object.keys(plottable).length !== 0) {
+                if (Object.keys(plottable).length !== 0) {
                     list = list.concat(Object.values(plottable));
                 }
             }
@@ -120,7 +120,7 @@ export default class Place extends Plottable {
         for(let y = 0; y < this.size; y++) {
             for(let x = 0; x < this.size; x++) {
                 let tileID = getObjByName(tileType, tileList).id;
-                if(this.plot[y][x].hasTile(tileID)) {
+                if (this.plot[y][x].hasTile(tileID)) {
                     return [x, y];
                 }
             }
@@ -141,7 +141,7 @@ export default class Place extends Plottable {
                     let index = place.getTile(j, i).dangerLevel;
 
                     // birth a monster off chance and with empty square
-                    if(birthChance < BIRTH_CHANCE[index] &&
+                    if (birthChance < BIRTH_CHANCE[index] &&
                         !place.getTile(j, i).hasPlottables()) {
                         let newMonster = clone(chooseRandom(monsterList), false,
                             DEEP_COPY_DEPTH);

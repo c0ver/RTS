@@ -22,9 +22,9 @@ export default class ItemEvent extends Event {
 
         this.item = item;
 
-        if(item instanceof Consumable) {
+        if (item instanceof Consumable) {
             this.buttonSet.push("Consume");
-        } else if(item instanceof Clothing || item instanceof Tool) {
+        } else if (item instanceof Clothing || item instanceof Tool) {
             this.buttonSet.push("Equip");
         }
     }
@@ -57,11 +57,11 @@ export default class ItemEvent extends Event {
         }
 
         // update Inventory Event for changes in player's inventory
-        if(this.nextEvent instanceof Inventory) {
+        if (this.nextEvent instanceof Inventory) {
             this.nextEvent.update(undefined);
         }
 
-        if(nextEvent !== undefined) {
+        if (nextEvent !== undefined) {
             return nextEvent;
         }
 

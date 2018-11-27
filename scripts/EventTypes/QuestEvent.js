@@ -19,9 +19,9 @@ export default class QuestEvent extends Template {
     }
 
     sideEffect(command, newEvent) {
-        if(newEvent === null) {
+        if (newEvent === null) {
             for(let itemName in this.quest.nextChapter.gain) {
-                if(itemName === "money") {
+                if (itemName === "money") {
                     me.gainMoney(this.quest.nextChapter.gain[itemName]);
                     continue;
                 }
@@ -31,11 +31,11 @@ export default class QuestEvent extends Template {
             }
         }
 
-        if(this.eventJSON.hasOwnProperty("nextChapter")) {
+        if (this.eventJSON.hasOwnProperty("nextChapter")) {
             console.log("Next Chapter for this quest is chosen " + this.eventJSON.nextChapter);
 
             // the quest is done
-            if(this.eventJSON.nextChapter === "DONE") {
+            if (this.eventJSON.nextChapter === "DONE") {
                 this.quest.updateChapter(null);
                 return;
             }

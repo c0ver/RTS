@@ -20,7 +20,7 @@ export function readFile(filePath) {
 // without overwrite
 export function deepAssign(target, obj) {
     for (const key of Object.getOwnPropertyNames(obj)) {
-        if(target[key] != null) continue;
+        if (target[key] != null) continue;
         target[key] = obj[key];
     }
 }
@@ -33,7 +33,7 @@ export function deepAssign(target, obj) {
  */
 export function getObjByName(name, obj) {
     for(let id in obj) {
-        if(obj[id].name === name) {
+        if (obj[id].name === name) {
             return obj[id];
         }
     }
@@ -49,7 +49,7 @@ export function chooseRandom(obj) {
     let keys = [];
     for(let key in obj) {
         let birthPriority = obj[key].birthPriority;
-        if(birthPriority !== undefined) {
+        if (birthPriority !== undefined) {
             let total = PRIORITY_MULTIPLIER / Math.pow(birthPriority, 2);
             for(let i = 0; i < PRIORITY_MULTIPLIER / birthPriority; i++) {
                 keys.push(key);

@@ -27,13 +27,13 @@ export default class Default extends Event {
         super(tile.name, tile.desc, DEFAULT_BUTTON_SET, null, null);
 
         for(let plottableID in tile.onTileList) {
-            if(plottableID === me.id) continue;
+            if (plottableID === me.id) continue;
             this.storyText += tile.onTileList[plottableID].desc;
         }
 
-        if(me.fatigue() < 0.25) {
+        if (me.fatigue() < 0.25) {
           this.storyText += TIER_2_FATIGUE;
-        } else if(me.fatigue() < 0.5) {
+        } else if (me.fatigue() < 0.5) {
             this.storyText += TIER_1_FATIGUE;
         }
     }
@@ -72,7 +72,7 @@ export default class Default extends Event {
                 console.error(UNKNOWN_COMMAND.fmt(command));
         }
 
-        if(nextEvent !== undefined) {
+        if (nextEvent !== undefined) {
             return nextEvent;
         }
 
@@ -105,16 +105,16 @@ export default class Default extends Event {
                 break;
         }
 
-        if(me.checkMove(xDelta, yDelta) === -1) {
+        if (me.checkMove(xDelta, yDelta) === -1) {
             return false;
         }
 
-        if(action === "North" || action === "South" ||
+        if (action === "North" || action === "South" ||
             action === "West" || action === "East") {
             return me.energy() >= me.energyCost("Move");
         }
 
-        if(action === "Interact") {
+        if (action === "Interact") {
             return me.getTile().hasPlottables(me.id)
         }
 

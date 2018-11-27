@@ -28,7 +28,7 @@ export default class Chapter {
         let eventObject = {};
 
         let event = this.eventSeries[index];
-        if(event === undefined) {
+        if (event === undefined) {
             console.log(this.eventSeries);
             console.log(index);
         }
@@ -41,13 +41,13 @@ export default class Chapter {
             let nextIndex = event.children[child];
 
             // make sure the nextIndex is a valid index
-            if(typeof nextIndex !== "number") {
+            if (typeof nextIndex !== "number") {
                 console.error(this.eventSeries[index]);
                 console.error("Has an invalid index");
             }
 
 
-            if(nextIndex !== -1) {
+            if (nextIndex !== -1) {
                 eventObject[child] = this.createEvent(nextIndex);
             } else {
                 eventObject[child] = null;

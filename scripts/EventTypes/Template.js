@@ -7,7 +7,7 @@ export default class Template extends Event {
     }
 
     chooseNewEvent(command) {
-        if(command in this.eventObject) {
+        if (command in this.eventObject) {
             return this.eventObject[command];
         }
         console.log("{0} not found in Template class".fmt(command));

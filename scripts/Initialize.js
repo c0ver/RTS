@@ -193,11 +193,11 @@ function createUniqueNPCs() {
 
         let xPos = npc.xPos;
         let yPos = npc.yPos;
-        if("relativeTo" in npc) {
+        if ("relativeTo" in npc) {
             let plottable = getObjByName(npc.relativeTo, Data.totalList);
             xPos = plottable.xPos + npc["xDelta"];
             yPos = plottable.yPos + npc["yDelta"];
-        } else if(xPos === undefined || yPos === undefined) {
+        } else if (xPos === undefined || yPos === undefined) {
             console.error(ERROR_NO_LOCATION_GIVEN.fmt(npcName));
         }
 
@@ -231,7 +231,7 @@ function createTraders() {
         let inventory = getInventory(t.inventory);
 
         for(let placeID in Data.placeList) {
-            if(Data.placeList[placeID].type === "TOWN") {
+            if (Data.placeList[placeID].type === "TOWN") {
                 Data.npcList[Thing.id] = new Trader(traderName,
                     Data.placeList[placeID], inventory, t.wealthLevel,
                     t.squareType);

@@ -12,7 +12,7 @@ export default class Inventory extends Event {
         super(person.name + "'s Inventory", null, null, nextEvent, null);
         this.self = person;
 
-        if(person !== me) {
+        if (person !== me) {
             this.other = person;
         }
 
@@ -20,12 +20,12 @@ export default class Inventory extends Event {
     }
 
     chooseNewEvent(command) {
-        if(command === "Go Back") {
+        if (command === "Go Back") {
             return this.nextEvent;
         }
 
         // came from a trade Event
-        if(this.nextEvent instanceof Trade || this.nextEvent instanceof Gear) {
+        if (this.nextEvent instanceof Trade || this.nextEvent instanceof Gear) {
             return this.nextEvent.chooseNewEvent(command);
         }
 
@@ -38,14 +38,14 @@ export default class Inventory extends Event {
         this.buttonSet = [];
         for(let itemID in this.self.inventory) {
             let item = itemList[itemID];
-            if(subType === undefined || item.subType === subType) {
+            if (subType === undefined || item.subType === subType) {
                 this.storyText += ITEM_DESC.fmt(item.name,
                     this.self.inventory[itemID], item.desc);
                 this.buttonSet.push(item.name);
             }
         }
         this.buttonSet.push("Go Back");
-        if(this.storyText === "") {
+        if (this.storyText === "") {
             this.storyText = "You have an empty inventory";
         }
     }

@@ -11,7 +11,7 @@ export default class Next extends Event {
     }
 
     chooseNewEvent(command) {
-        if(this.nextEvent === undefined) {
+        if (this.nextEvent === undefined) {
             console.error("There is nowhere to go after this event");
         }
 

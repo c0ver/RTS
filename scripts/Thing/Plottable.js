@@ -35,7 +35,7 @@ export default class Plottable extends Thing {
                                             this, this.getTile().getEvent());
         for(let questID in this.quests) {
             let quest = this.quests[questID];
-            if(quest.nextChapter.triggerEvent === "Talk") {
+            if (quest.nextChapter.triggerEvent === "Talk") {
                 eventObject[quest.nextChapter.name] = quest.nextChapter.rootEvent;
             }
         }
@@ -48,15 +48,15 @@ export default class Plottable extends Thing {
     }
 
     addToParentPlace() {
-        if(this.parentPlace == null) {
-            if(this.parentPlace === undefined) {
+        if (this.parentPlace == null) {
+            if (this.parentPlace === undefined) {
                 console.error(this.name + " has an undefined parentPlace");
             }
             console.log(this.name + " has a null parentPlace");
             return;
         }
 
-        if(this.xPos === -1 || this.yPos === -1) {
+        if (this.xPos === -1 || this.yPos === -1) {
             console.log("Not adding {0} to plot due to invalid coordinates"
                 .fmt(this.name));
             return;

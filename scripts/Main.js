@@ -31,21 +31,5 @@ function createDisplay() {
     }).appendTo("#startContainer");
 }
 
-$(document).keydown(function(e) {
-    switch(e.which) {
-        case 87: // w
-            me.move(0, -1);
-            break;
-        case 83: // s
-            me.move(0, 1);
-            break;
-        case 65: // a
-            me.move(-1, 0);
-            break;
-        case 68: // d
-            me.move(1, 0);
-            break;
-    }
-});
 
 createDisplay();

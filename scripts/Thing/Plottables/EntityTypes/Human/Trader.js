@@ -13,7 +13,7 @@ export default class Trader extends Human {
      */
     constructor(name, parentPlace, inventory, wealthLevel, squareType) {
         let pos = parentPlace.getTileCoordinates("MARKET");
-        if(squareType !== undefined) {
+        if (squareType !== undefined) {
             pos = parentPlace.getTileCoordinates(squareType);
         }
 
