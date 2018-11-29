@@ -127,40 +127,5 @@ export default class Place extends Plottable {
         }
     }
 
-    static birthMonsters() {
-        console.groupCollapsed("Adding to activeMonsters");
 
-        // only birth monsters in main map for now
-        for(let placeID in placeList) {
-            let place = getObjByName("main", placeList);
-
-            for(let i = 0; i < place.plot.length; i++) {
-                for(let j = 0; j < place.plot[i].length; j++) {
-                    // between 0 to 99
-                    let birthChance = Math.floor(Math.random() * 100);
-                    let index = place.getTile(j, i).dangerLevel;
-
-                    // birth a monster off chance and with empty square
-                    if (birthChance < BIRTH_CHANCE[index] &&
-                        !place.getTile(j, i).hasPlottables()) {
-                        let newMonster = clone(chooseRandom(monsterList), false,
-                            DEEP_COPY_DEPTH);
-                        newMonster.id = Thing.id;
-                        newMonster.tag = newMonster.name + "#" + newMonster.id;
-                        Thing.id++;
-                        newMonster.xPos = j;
-                        newMonster.yPos = i;
-                        newMonster.addToParentPlace();
-
-                        activeMonsters[newMonster.id] = newMonster;
-                    }
-                }
-            } // end of looping through the plot
-            console.log(activeMonsters);
-
-            break;
-        }
-
-        console.groupEnd();
-    }
 }

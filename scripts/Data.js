@@ -18,11 +18,14 @@ export let totalList = {};
      .add("assets/plot/images/Pirn.png")
      .add("assets/plot/images/main.png")
      .add("assets/playerIcon.png")
+     .add("assets/monsters/bear.png")
+     .add("assets/monsters/wolf.png")
      .load(function() {
-         console.log("finished loading");
+         console.log("Finished loading");
      });
 
-// the player
+// the function needs to be in here because exported values cannot be redeclared
+// me should probably be in here instead of Game.js to avoid circular dependencies
 export let me;
 export function createMe(player) {
     console.log("Creating me");

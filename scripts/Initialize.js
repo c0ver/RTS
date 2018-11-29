@@ -164,7 +164,7 @@ function createEntities() {
 
     console.group("Player");
     Data.npcList[Thing.id] = Data.createMe(new Human("You", "myDesc",
-        getObjByName("Westwend", Data.placeList), START_X, START_Y, undefined,
+        getObjByName("main", Data.placeList), START_X, START_Y, undefined,
         undefined, undefined, undefined, {}, 0));
     console.groupEnd();
 

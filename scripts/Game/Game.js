@@ -1,13 +1,13 @@
 "use strict";
 
-import {activeMonsters, me} from "../Data.js";
+import {activeMonsters, me, monsterList, placeList} from "../Data.js";
 import Inventory from "../EventTypes/Inventory.js";
 import Gear from "../EventTypes/Gear.js";
-import Trade from "../EventTypes/Trade.js";
+import Thing from "./Thing.js";
 import Battle from "./Battle.js";
-import Place from '../Thing/Plottables/Place.js';
-import ItemEvent from "../EventTypes/ItemEvent.js";
 import ActionCombat from "./ActionCombat.js";
+import {chooseRandom, getObjByName} from "../Miscellaneous.js";
+import {clone} from "../Clone.js";
 
 let Sprite = PIXI.Sprite,
     resources = PIXI.loader.resources;
@@ -15,8 +15,14 @@ let Sprite = PIXI.Sprite,
 const EVENT_INFO = "Current Event: ({0})";
 
 const PLOT_FILE = "assets/plot/images/{0}.png";
+const MONSTER_FILE = "assets/monsters/{0}.png";
 const PLAYER_ICON_FILE = "assets/playerIcon.png";
 const TILE_SIZE = 64;
+const FPS = 60;
+const MONSTER_CHANGE_DIRECTION_SEC = 5;
+
+export const BIRTH_CHANCE = [0, 1, 1];
+const DEEP_COPY_DEPTH = 2;
 
 export default class Game {
 
@@ -25,13 +31,14 @@ export default class Game {
         this.currentEvent = null;
         this.currentPlotName = null;
         this.plot = null;
+        this.totalGroup = null;
 
         // create the PixiJS application that matches the window size
         let $body = $("body");
         $body.empty();
         let width = $body.width();
         let height = $body.height();
-        this.plotContainer = new PIXI.Application(width, height);
+        this.gameApp = new PIXI.Application(width, height);
 
         this.initialize();
         // let a = new ActionCombat();
@@ -46,23 +53,26 @@ export default class Game {
 
         // initialize the plot first
         $("<div>", {id: "overallContainer"}).appendTo("body");
-        $("#overallContainer").append(this.plotContainer.view);
+        $("#overallContainer").append(this.gameApp.view);
 
+        // add the plot to the group that holds all non player elements
+        this.totalGroup = new PIXI.Container();
         this.plot = new Sprite(
             resources[PLOT_FILE.fmt(me.parentPlace.name)].texture);
-        this.plot.x = this.plotContainer.renderer.width / 2 - TILE_SIZE / 2 -
+        this.totalGroup.x = this.gameApp.renderer.width / 2 - TILE_SIZE / 2 -
             TILE_SIZE * me.xPos;
-        this.plot.y = this.plotContainer.renderer.height / 2 - TILE_SIZE / 2 -
+        this.totalGroup.y = this.gameApp.renderer.height / 2 - TILE_SIZE / 2 -
             TILE_SIZE * me.yPos;
-        // the plot will always be the first child
-        this.plotContainer.stage.addChild(this.plot);
+        this.totalGroup.addChild(this.plot);
         this.currentPlotName = me.parentPlace.name;
+        this.gameApp.stage.addChild(this.totalGroup);
 
-        let playerIcon = new Sprite(resources[PLAYER_ICON_FILE].texture);
-        playerIcon.x = this.plotContainer.renderer.width / 2 - TILE_SIZE / 2;
-        playerIcon.y = this.plotContainer.renderer.height / 2 - TILE_SIZE / 2;
-        this.plotContainer.stage.addChild(playerIcon);
+        me.sprite = new Sprite(resources[PLAYER_ICON_FILE].texture);
+        me.sprite.x = this.gameApp.renderer.width / 2 - TILE_SIZE / 2;
+        me.sprite.y = this.gameApp.renderer.height / 2 - TILE_SIZE / 2;
+        this.gameApp.stage.addChild(me.sprite);
 
+        // all the non pixiJS stuff that provides info to player
         $("<div>", {id: "playerContainer", class: "sidebar"}).appendTo("body");
         $("<p>", {id: "playerInfoText", class: "infoText"})
             .appendTo("#playerContainer");
@@ -86,37 +96,56 @@ export default class Game {
             .appendTo("#otherContainer");
 
         $("<div>", {id: "mainContainer"}).appendTo("body");
-        $("<div>", {id: "battleContainer"}).css("visibility", "hidden")
-            .appendTo("#mainContainer");
+        Battle.initialization();
         $("<div>", {id: "storyContainer"}).appendTo("#mainContainer");
         $("<p>", {id: "storyText"}).appendTo("#storyContainer");
 
-        Place.birthMonsters();
-        console.groupEnd();
+        this.birthMonsters();
 
         // giving keyboard controls
         $(document).keydown(function(e) {
             switch(e.which) {
                 case 87: // w
-                    me.move(0, -1);
+                    me.vy = -5;
                     break;
                 case 83: // s
-                    me.move(0, 1);
+                    me.vy = 5;
                     break;
                 case 65: // a
-                    me.move(-1, 0);
+                    me.vx = -5;
                     break;
                 case 68: // d
-                    me.move(1, 0);
+                    me.vx = 5;
+                    break;
+            }
+        });
+        $(document).keyup(function(e) {
+            switch(e.which) {
+                case 87: // w
+                    me.vy = 0;
+                    break;
+                case 83: // s
+                    me.vy = 0;
+                    break;
+                case 65: // a
+                    me.vx = 0;
+                    break;
+                case 68: // d
+                    me.vx = 0;
                     break;
             }
         });
 
-        this.plotContainer.ticker.add(delta => this.gameLoop(delta));
+        this.gameApp.ticker.add(delta => this.gameLoop(delta));
+        console.groupEnd();
     }
 
     gameLoop(delta) {
-        this.updateDisplay();
+        console.log("Game Loop");
+        this.playerMovement();
+        this.monsterMovement();
+
+        this.checkForConflict();
     }
 
     buttonPress(command) {
@@ -151,84 +180,28 @@ export default class Game {
             }
         }
 
-        this.drawDisplay(newEvent);
-
         console.groupEnd();
-    }
-
-    drawDisplay() {
-        // update playerInfo
-        $("#playerInfoText").text(me.simpleInfo());
-
-        let $gameInfoText = $("#gameInfoText");
-        $gameInfoText.text(this.gameTime.formatted() + me.parentPlace.name + '\n');
-
-        // update storyText
-        $("#storyText").text("HI");
-
-
-        // update plotContainer
-        if (me.hasMoved === true) {
-            me.hasMoved = false;
-            if (me.parentPlace.name !== this.currentPlotName) {
-                this.changePlotDisplay();
-            } else {
-                this.movePlotDisplay();
-            }
-        }
-
-        // update otherInfo
-        // let $otherInfoText = $("#otherInfoText");
-        // $otherInfoText.text("");
-        // if (event.other != null) {
-        //     $otherInfoText.append(event.other.info());
-        // }
-    }
-
-    movePlotDisplay() {
-        console.log("Moving plot");
-
-        let $newImage = $("#plot");
-        let $body = $("body");
-        let $playerIcon = $("#playerIcon");
-
-        let windowHeight = $body.height();
-        let windowWidth = $body.width();
-
-        /* adjust the plot to the player's position with starting point at (0, 0) */
-        $newImage.css({
-            left: (windowWidth - TILE_SIZE) / 2 + me.xPos * -1 * TILE_SIZE,
-            top: (windowHeight - TILE_SIZE) / 2 + me.yPos * -1 * TILE_SIZE
-        });
-
-        console.log(windowWidth);
-        console.log(windowHeight);
-
-        // TODO: should only do this when the window size changes
-        // problem with loading sometimes
-        $playerIcon.css({
-            left: (windowWidth - $playerIcon.width()) / 2,
-            top: (windowHeight - $playerIcon.height()) / 2
-        })
     }
 
     changePlotDisplay() {
         console.log("Changing plot to {0}".fmt(me.parentPlace.name));
 
         // the plot will always be the first child
-        this.plotContainer.stage.getChildAt(0).texture =
+        this.gameApp.stage.getChildAt(0).texture =
             resources[PLOT_FILE.fmt(me.parentPlace.name)].texture;
     }
 
-    updateDisplay() {
-        if(me.parentPlace.name !== this.currentPlotName) {
+    playerMovement() {
+        if (me.parentPlace.name !== this.currentPlotName) {
             this.changePlotDisplay();
         }
 
-        this.plot.x = this.plotContainer.renderer.width / 2 - TILE_SIZE / 2 -
-            TILE_SIZE * me.xPos;
-        this.plot.y = this.plotContainer.renderer.height / 2 - TILE_SIZE / 2 -
-            TILE_SIZE * me.yPos;
+        Game.contain(me, this.totalGroup);
+
+        // map moves opposite of player movement
+        this.totalGroup.x -= me.vx;
+        this.totalGroup.y -= me.vy;
+
     }
 
     progressTime(amount) {
@@ -237,14 +210,14 @@ export default class Game {
         }
         this.gameTime.addTime(amount);
 
-        Game.timeEvent();
+        this.playerMovement();
 
         // end of the day
         if (this.gameTime.newDay === true) {
             console.log("It's a new day");
 
             // Randomly create monsters that can move around
-            Place.birthMonsters();
+            this.birthMonsters();
         }
 
         console.log("Active Monster List");
@@ -253,66 +226,187 @@ export default class Game {
         console.log('--------------------------------------------------------');
     }
 
-    static timeEvent() {
-        console.group("Time-based Events");
-
-        // move all the monsters
-        console.groupCollapsed("Monsters are moving");
+    monsterMovement() {
         for (let monsterID in activeMonsters) {
             let monster = activeMonsters[monsterID];
-            if (monster.fatigue() < 0.3 || monster.vitality() < 0.5) {
-                monster.rest();
-                continue;
+            let monsterMoves =
+                Math.floor(Math.random() * FPS * MONSTER_CHANGE_DIRECTION_SEC) === 0;
+            if (monsterMoves === true) {
+                let randomMove = Math.floor(Math.random() * 5);
+                switch (randomMove) {
+                    case 0:
+                        monster.vx = 1;
+                        monster.vy = 0;
+                        break;
+                    case 1:
+                        monster.vx = -1;
+                        monster.vy = 0;
+                        break;
+                    case 2:
+                        monster.vx = 0;
+                        monster.vy = 1;
+                        break;
+                    case 3:
+                        monster.vx = 0;
+                        monster.vy = -1;
+                        break;
+                    case 4:
+                        monster.vx = 0;
+                        monster.vy = 0;
+                        break;
+                }
             }
-            let randomMove = Math.floor(Math.random() * 5);
-            switch (randomMove) {
-                case 0:
-                    monster.move(0, -1);
-                    break;
-                case 1:
-                    monster.move(0, 1);
-                    break;
-                case 2:
-                    monster.move(1, 0);
-                    break;
-                case 3:
-                    monster.move(-1, 0);
-                    break;
-                case 4:
-                    monster.rest();
-                    break;
+
+            Game.contain(monster, this.totalGroup);
+
+            monster.sprite.x += monster.vx;
+            monster.sprite.y += monster.vy;
+        }
+    }
+
+    checkForConflict() {
+        let monsterArray = Object.values(activeMonsters);
+
+        for (let i = 0; i < monsterArray.length - 1; i++) {
+            if(Game.collisionCheck(me, monsterArray[i])) {
+                console.log("Player has collided with a monster");
+                let participants = [];
+                participants.push(monsterArray[i]);
+                participants.push(me);
+
+                new Battle(participants);
+
+                this.gameApp.ticker.stop();
+            }
+
+            for (let j = i + 1; j < monsterArray.length; j++) {
+                if (Game.collisionCheck(monsterArray[i], monsterArray[j])) {
+                    console.log("Collision between {0} and {1}".fmt(i, j));
+                    // fight
+                    let participants = [];
+                    participants.push(monsterArray[i]);
+                    participants.push(monsterArray[j]);
+
+                    new Battle(participants);
+
+                    this.gameApp.ticker.stop();
+                    return;
+                }
             }
         }
-        console.groupEnd();
-
-        // if 2+ monsters occupy the same square, make them fight
-        Game.checkForConflict();
-
-        console.groupEnd();
     }
 
-    static checkForConflict() {
-        console.groupCollapsed("Monsters fight");
+    // from https://github.com/kittykatattack/learningPixi#collision
+    static collisionCheck(obj1, obj2) {
 
-        for (let monsterID in activeMonsters) {
-            let monster = activeMonsters[monsterID];
+        //Define the variables we'll need to calculate
+        let combinedHalfWidths, combinedHalfHeights, xDelta, yDelta;
+        let sprite1 = obj1.sprite;
+        let sprite2 = obj2.sprite;
 
-            // fight with enemies on the same tile
-            let enemies = monster.getTile().getEnemies(monsterID);
-            if (enemies.length !== 0) {
-                console.group("Battle");
+        //Find the half-widths and half-heights of each sprite
+        let halfWidth1 = sprite1.width / 2;
+        let halfHeight1 = sprite1.height / 2;
+        let halfWidth2 = sprite2.width / 2;
+        let halfHeight2 = sprite2.height / 2;
 
-                let participants = enemies.concat([monster]);
-                new Battle(participants, null);
+        //Find the center points of each sprite
+        let centerX1, centerY1, centerX2, centerY2;
+        centerX1 = sprite1.x + halfWidth1;
+        centerY1 = sprite1.y + halfHeight1;
+        if(obj1 === me) {
+            centerX2 = sprite2.getGlobalPosition().x + halfWidth2;
+            centerY2 = sprite2.getGlobalPosition().y + halfHeight2;
+        } else {
+            centerX2 = sprite2.x + halfWidth2;
+            centerY2 = sprite2.y + halfHeight2;
+        }
 
-                console.groupEnd();
+        //Calculate the distance vector between the sprites
+        xDelta = centerX1 - centerX2;
+        yDelta = centerY1 - centerY2;
+
+        //Figure out the combined half-widths and half-heights
+        combinedHalfWidths = halfWidth1 + halfWidth2;
+        combinedHalfHeights = halfHeight1 + halfHeight2;
+
+        if(obj2 === me) {
+            console.log("{0} {1}".fmt(xDelta, combinedHalfWidths));
+            console.log("{0} {1}".fmt(yDelta, combinedHalfHeights));
+        }
+
+        //Check for a collision on the x axis
+        if (Math.abs(xDelta) < combinedHalfWidths) {
+            //A collision might be occurring. Check for a collision on the y axis
+            return Math.abs(yDelta) < combinedHalfHeights;
+        }
+
+        return false;
+    }
+
+    // from: https://github.com/kittykatattack/learningPixi#containingmovement
+    static contain(entity, container) {
+        let sprite = entity.sprite;
+
+        //Left
+        if (sprite.x <= container.x) {
+            sprite.x = container.x;
+            if (entity.vx < 0) entity.vx = 0;
+        }
+
+        //Top
+        if (sprite.y <= container.y) {
+            sprite.y = container.y;
+            if (entity.vy < 0) entity.vy = 0;
+        }
+
+        //Right
+        if (sprite.x + sprite.width >= container.width) {
+            sprite.x = container.width - sprite.width;
+            if (entity.vx > 0) entity.vx = 0;
+        }
+
+        //Bottom
+        if (sprite.y + sprite.height >= container.height) {
+            sprite.y = container.height - sprite.height;
+            entity.vy = 0;
+            if (entity.vy > 0) entity.vy = 0;
+        }
+    }
+
+    birthMonsters() {
+        console.groupCollapsed("Adding to activeMonsters");
+
+        let place = getObjByName("main", placeList);
+
+        for(let i = 0; i < place.plot.length; i++) {
+            for(let j = 0; j < place.plot[i].length; j++) {
+                // between 0 to 99
+                let birthChance = Math.floor(Math.random() * 100);
+                let index = place.getTile(j, i).dangerLevel;
+
+                // birth a monster off chance and with empty square
+                if (birthChance < BIRTH_CHANCE[index] &&
+                    !place.getTile(j, i).hasPlottables()) {
+                    let monster = clone(chooseRandom(monsterList), false,
+                        DEEP_COPY_DEPTH);
+                    monster.id = (Thing.id++).toString();
+                    monster.tag = monster.name + "#" + monster.id;
+                    monster.sprite = new Sprite(
+                        resources[MONSTER_FILE.fmt(monster.name)].texture);
+                    monster.sprite.position.set(j * TILE_SIZE, i * TILE_SIZE);
+                    monster.sprite.width = TILE_SIZE;
+                    monster.sprite.height = TILE_SIZE;
+                    this.totalGroup.addChild(monster.sprite);
+
+                    activeMonsters[monster.id] = monster;
+                }
             }
-        } // end of activeMonsters loop
+        } // end of looping through the plot
+        console.log(activeMonsters);
 
         console.groupEnd();
     }
-
-
 }
 
 const TIME_FORMAT = "Day {0}, {1}:{2}\n";

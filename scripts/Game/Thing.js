@@ -10,6 +10,8 @@ export default class Thing {
         this.id = (Thing.id++).toString();
 
         this.tag = this.name + "#" + this.id;
+
+        this.sprite = null;
     }
 
 }

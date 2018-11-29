@@ -45,46 +45,39 @@ const CRIT_DAMAGE_MODIFIER = 3;
 // Attack, Defend, Run
 const NUMBER_OF_ACTIONS = 3;
 
+const GRID_SIZE = 5;
+const BORDER_WIDTH = 3;
+
+let Sprite = PIXI.Sprite,
+    resources = PIXI.loader.resources;
+
 /**
- * Can either be battle or turn by turn fight scene
+ * Is a battle between two npc characters for now
  */
 export default class Battle {
 
     /**
      * @param entityList {Entity[]} List of entities involved in this battle
-     * @param command {String} The player's action if involved
      */
-    constructor(entityList, command) {
-        if (entityList.length >= 3) console.error("More than three fighters");
-
-        let includesPlayer = false;
+    constructor(entityList) {
+        // deal with multiple enemies later
+        if (entityList.length > 2) console.error("More than two fighters");
 
         this.entityList = entityList;
         this.totalXP = 0;
 
-        this.actionOccurredThisTurn = false;
-
-        // list of objects of Fighter class defined below
-        this.fighters = [];
-        for (let entity of entityList) {
-            let fighter = new Fighter(entity, entity.chooseAction());
-            if (entity === me) {
-                fighter = new Fighter(entity, command);
-                includesPlayer = true;
-            }
-
-            this.fighters.push(fighter);
-        }
-
-        this.fighters.sort(function (a, b) {
+        this.entityList.sort(function (a, b) {
             return b.speed - a.speed
         });
 
-        if (includesPlayer === true) {
-            return;
-        }
+        let $battleContainer = $("#battleContainer");
+        $battleContainer.css("visibility", "visible");
 
-        this.battle();
+        // let entity1 = new Sprite(
+        //     resources[MONSTER_FILE.fmt()]
+        // )
+
+        // this.battle();
     }
 
     /**
@@ -292,6 +285,34 @@ export default class Battle {
         }
     }
 
+    static initialization() {
+        $("<div>", {id: "battleContainer"}).css("visibility", "hidden")
+            .appendTo("#mainContainer");
+        let $battleContainer = $("#battleContainer");
+        let width = $battleContainer.width();
+        let height = $battleContainer.height();
+        Battle.battleApp = new PIXI.Application(width, height);
+        $battleContainer.append(Battle.battleApp.view);
+
+        let grid = new PIXI.Container();
+        let rectangleWidth = width / GRID_SIZE;
+        let rectangleHeight = height / GRID_SIZE;
+        for(let i = 0; i < GRID_SIZE; i++) {
+            for(let j = 0; j < GRID_SIZE; j++) {
+                let square = new PIXI.Graphics();
+                square.lineStyle(BORDER_WIDTH, 0x1E231D, 1);
+                square.beginFill(0x6D8467);
+                square.drawRect(0, 0, rectangleWidth, rectangleHeight);
+                square.endFill();
+                square.position.set(i * rectangleWidth, j * rectangleHeight);
+
+                grid.addChild(square);
+            }
+        }
+
+        Battle.battleApp.stage.addChild(grid);
+    }
+
 }
 
 class Fighter {
@@ -318,3 +339,5 @@ class Fighter {
             Battle.actionSpeed(command);
     }
 }
+
+Battle.battleApp = {};

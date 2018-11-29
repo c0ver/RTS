@@ -11,9 +11,7 @@ const FPS = 30;
 
 function startGame() {
     let event = getObjByName("Opening Scene", questList).nextChapter.rootEvent;
-    let game = new Game(event);
-
-    setInterval(function() { game.gameLoop(); }, 1000 / FPS);
+    new Game(event);
 }
 
 function createDisplay() {
