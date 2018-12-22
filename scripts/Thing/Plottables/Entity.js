@@ -27,6 +27,8 @@ const BASE_XP_LEVEL = 10;
 const XP_NEEDED_EXPONENT = 1.2;
 const LEVEL_UP_MULTIPLIER = 1.2;
 
+const DEFAULT_RANGE = 120;
+
 const STAT_INFO = "Level: {0}\nHP: {1}\nEnergy: {2}\nAgility: {3}\nStrength: {4}\n";
 
 export default class Entity extends Mobile {
@@ -53,6 +55,7 @@ export default class Entity extends Mobile {
         this.deathXP = deathXP;
         this.hostility = hostility;
         this.birthPriority = birthPriority;
+        this.range = DEFAULT_RANGE;
 
         this.inventory = {};
         for (let itemID in inventory) {

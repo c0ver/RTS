@@ -51,9 +51,15 @@ export default class Game {
         console.group("Initializing this Game instance");
         let self = this;
 
+        // using normal js because I can't figure it out for jquery
+        document.addEventListener("contextmenu", function (e) {
+            e.preventDefault();
+        }, false);
+
         // initialize the plot first
         $("<div>", {id: "overallContainer"}).appendTo("body");
-        $("#overallContainer").append(this.gameApp.view);
+        let $overallContainer = $("#overallContainer");
+        $overallContainer.append(this.gameApp.view);
 
         // add the plot to the group that holds all non player elements
         this.totalGroup = new PIXI.Container();
@@ -70,6 +76,18 @@ export default class Game {
         me.sprite = new Sprite(resources[PLAYER_ICON_FILE].texture);
         me.sprite.x = this.gameApp.renderer.width / 2 - TILE_SIZE / 2;
         me.sprite.y = this.gameApp.renderer.height / 2 - TILE_SIZE / 2;
+        me.sprite.width = TILE_SIZE;
+        me.sprite.height = TILE_SIZE;
+
+        let rangeBorder = new PIXI.Graphics();
+        rangeBorder.lineStyle(2, 0xBC7063);
+        rangeBorder.drawCircle(0, 0, 100);
+        rangeBorder.endFill();
+        // rangeBorder.x = me.sprite.width / 2;
+        // rangeBorder.y = me.sprite.height / 2;
+        console.log(me.sprite.x);
+        me.sprite.addChild(rangeBorder);
+
         this.gameApp.stage.addChild(me.sprite);
 
         // all the non pixiJS stuff that provides info to player
@@ -102,7 +120,7 @@ export default class Game {
 
         this.birthMonsters();
 
-        // giving keyboard controls
+        // giving keyboard controls to movement
         $(document).keydown(function(e) {
             switch(e.which) {
                 case 87: // w
@@ -116,6 +134,10 @@ export default class Game {
                     break;
                 case 68: // d
                     me.vx = 5;
+                    break;
+                case 16: // shift (run)
+                    me.vx *= 2;
+                    me.vy *= 2;
                     break;
             }
         });
@@ -133,8 +155,39 @@ export default class Game {
                 case 68: // d
                     me.vx = 0;
                     break;
+                case 16: // shift (run)
+                    me.vx /= 2;
+                    me.vy /= 2;
+                    break;
             }
         });
+
+        // keyboard controls for combat
+        $(document).keydown(function(e) {
+            switch(e.which) {
+                case 87: // q (dodge)
+                    me.vy = -5;
+                    break;
+                case 83: // e (use)
+                    break;
+                case 65: // space (block)
+                    me.vx = -5;
+                    break;
+            }
+        });
+        $(document).mousedown(function(e) {
+            switch(e.which) {
+                case 1: // left mouse
+                    console.log("left click");
+                    self.rangeCheck(me);
+                    break;
+                case 3: // right mouse
+                    console.log("right click");
+                    self.rangeCheck(me);
+                    break;
+            }
+        });
+
 
         this.gameApp.ticker.add(delta => this.gameLoop(delta));
         console.groupEnd();
@@ -145,9 +198,10 @@ export default class Game {
         this.playerMovement();
         this.monsterMovement();
 
-        this.checkForConflict();
+        // this.checkForConflict();
     }
 
+    // @deprecated
     buttonPress(command) {
         console.group(EVENT_INFO.fmt(this.currentEvent.title));
         console.log("Button: ({0})".fmt(command));
@@ -183,6 +237,7 @@ export default class Game {
         console.groupEnd();
     }
 
+    // @deprecated
     changePlotDisplay() {
         console.log("Changing plot to {0}".fmt(me.parentPlace.name));
 
@@ -204,6 +259,7 @@ export default class Game {
 
     }
 
+    // @deprecated
     progressTime(amount) {
         if (amount === 0) {
             return;
@@ -264,6 +320,8 @@ export default class Game {
         }
     }
 
+    // only conflict between player and NPCs right now
+    // @deprecated
     checkForConflict() {
         let monsterArray = Object.values(activeMonsters);
 
@@ -279,21 +337,140 @@ export default class Game {
                 this.gameApp.ticker.stop();
             }
 
-            for (let j = i + 1; j < monsterArray.length; j++) {
-                if (Game.collisionCheck(monsterArray[i], monsterArray[j])) {
-                    console.log("Collision between {0} and {1}".fmt(i, j));
-                    // fight
-                    let participants = [];
-                    participants.push(monsterArray[i]);
-                    participants.push(monsterArray[j]);
+            // for (let j = i + 1; j < monsterArray.length; j++) {
+            //     if (Game.collisionCheck(monsterArray[i], monsterArray[j])) {
+            //         console.log("Collision between {0} and {1}".fmt(i, j));
+            //         // fight
+            //         let participants = [];
+            //         participants.push(monsterArray[i]);
+            //         participants.push(monsterArray[j]);
+            //
+            //         new Battle(participants);
+            //
+            //         this.gameApp.ticker.stop();
+            //         return;
+            //     }
+            // }
+        }
+    }
 
-                    new Battle(participants);
+    static addExtraGraphics(sprite) {
 
-                    this.gameApp.ticker.stop();
-                    return;
+        // centerDot
+        let centerDot = new PIXI.Graphics();
+        centerDot.beginFill(0x5F3930);
+        centerDot.drawCircle(0, 0, 15);
+        centerDot.endFill();
+
+        // why 100? doesn't work like the circle around player
+        centerDot.x = sprite.width / 2;
+        centerDot.y = sprite.height / 2;
+
+        sprite.addChild(centerDot);
+
+        // healthbar
+        let healthBar = new PIXI.Graphics();
+        healthBar.beginFill(0x658440);
+        healthBar.drawRect(0, 0, sprite.width, 10);
+        healthBar.endFill();
+        healthBar.x = 0;
+        healthBar.y = sprite.height;
+        sprite.addChild(healthBar);
+    }
+
+    static createMonsterGraphics() {
+        let sprite = new Sprite();
+
+        let centerDot = new PIXI.Graphics();
+        centerDot.beginFill(0x5F3930);
+        centerDot.drawCircle(0, 0, 60);
+        centerDot.endFill();
+
+        // why 100? doesn't work like the circle around player
+        centerDot.x = sprite.width / 2;
+        centerDot.y = sprite.height / 2;
+
+        // healthbar
+        let healthBar = new PIXI.Graphics();
+        healthBar.beginFill(0x658440);
+        healthBar.drawRect(0, 0, sprite.width, 10);
+        healthBar.endFill();
+        healthBar.x = 0;
+        healthBar.y = sprite.height;
+
+
+        sprite.addChild(centerDot);
+        sprite.addChild(healthBar);
+    }
+
+    birthMonsters() {
+        console.groupCollapsed("Adding to activeMonsters");
+
+        let place = getObjByName("main", placeList);
+
+        for(let i = 0; i < place.plot.length; i++) {
+            for(let j = 0; j < place.plot[i].length; j++) {
+                // between 0 to 99
+                let birthChance = Math.floor(Math.random() * 100);
+                let index = place.getTile(j, i).dangerLevel;
+
+                // birth a monster off chance and with empty square
+                if (birthChance < BIRTH_CHANCE[index] &&
+                    !place.getTile(j, i).hasPlottables()) {
+
+                    let monster = clone(chooseRandom(monsterList), false,
+                        DEEP_COPY_DEPTH);
+                    monster.id = (Thing.id++).toString();
+                    monster.tag = monster.name + "#" + monster.id;
+                    activeMonsters[monster.id] = monster;
+
+                    // monster.sprite = new Sprite(
+                    //     resources[MONSTER_FILE.fmt(monster.name)].texture);
+                    // monster.sprite.position.set(j * TILE_SIZE, i * TILE_SIZE);
+                    // monster.sprite.width = TILE_SIZE;
+                    // monster.sprite.height = TILE_SIZE;
+                    monster.sprite = Game.createMonsterGraphics();
+                    Game.addExtraGraphics(monster.sprite);
+
+                    this.totalGroup.addChild(monster.sprite);
                 }
             }
+        } // end of looping through the plot
+        console.log(activeMonsters);
+
+        console.groupEnd();
+    }
+
+    /**
+     * check if anyone is in range of the attack
+     * TODO: hits multiple entities if they are in range (bug)
+     * @param {Entity} attacker
+     */
+    rangeCheck(attacker) {
+        let attackRange = attacker.range * attacker.range;
+        let attackerSprite = attacker.sprite;
+
+        let targetArray = Object.values(activeMonsters);
+        targetArray.push(me);
+
+        for (let i = 0; i < targetArray.length - 1; i++) {
+            if(targetArray[i] === attacker) {
+                continue;
+            }
+
+            let position = targetArray[i].sprite.getGlobalPosition();
+            let distance = (position.x - attackerSprite.x) * (position.x - attackerSprite.x) +
+                (position.y - attackerSprite.y) * (position.y - attackerSprite.y);
+            console.log(position);
+            console.log(attackerSprite.position);
+            console.log(distance);
+
+            if (distance < attackRange) {
+                console.log("{0} hit {1}".fmt(attacker.tag, targetArray[i].tag));
+            }
         }
+
+        this.gameApp.ticker.stop();
     }
 
     // from https://github.com/kittykatattack/learningPixi#collision
@@ -373,42 +550,9 @@ export default class Game {
             if (entity.vy > 0) entity.vy = 0;
         }
     }
-
-    birthMonsters() {
-        console.groupCollapsed("Adding to activeMonsters");
-
-        let place = getObjByName("main", placeList);
-
-        for(let i = 0; i < place.plot.length; i++) {
-            for(let j = 0; j < place.plot[i].length; j++) {
-                // between 0 to 99
-                let birthChance = Math.floor(Math.random() * 100);
-                let index = place.getTile(j, i).dangerLevel;
-
-                // birth a monster off chance and with empty square
-                if (birthChance < BIRTH_CHANCE[index] &&
-                    !place.getTile(j, i).hasPlottables()) {
-                    let monster = clone(chooseRandom(monsterList), false,
-                        DEEP_COPY_DEPTH);
-                    monster.id = (Thing.id++).toString();
-                    monster.tag = monster.name + "#" + monster.id;
-                    monster.sprite = new Sprite(
-                        resources[MONSTER_FILE.fmt(monster.name)].texture);
-                    monster.sprite.position.set(j * TILE_SIZE, i * TILE_SIZE);
-                    monster.sprite.width = TILE_SIZE;
-                    monster.sprite.height = TILE_SIZE;
-                    this.totalGroup.addChild(monster.sprite);
-
-                    activeMonsters[monster.id] = monster;
-                }
-            }
-        } // end of looping through the plot
-        console.log(activeMonsters);
-
-        console.groupEnd();
-    }
 }
 
+// @deprecated
 const TIME_FORMAT = "Day {0}, {1}:{2}\n";
 class Time {
     constructor() {
