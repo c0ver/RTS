@@ -3,3 +3,4 @@ This game is a real-time open-world game in a medieval setting.
 External Libraries:
 jQuery - https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
 deepCloning - https://github.com/pvorb/clone
+PixiJS - http://www.pixijs.com/
